@@ -4,17 +4,18 @@ import requests
 import subprocess
 import zipfile
 import py7zr
+import time
 
 #local imports
 import keep_alive
 
-requestrr_path = '/requestrr'
-temp_path = '/tmp/requestrr'
+requestrr_path = os.path.join(os.getcwd(), 'requestrr')
+temp_path = os.path.join(os.getcwd(), 'temp/requestrr')
 requestrr_platform = 'requestrr-linux-x64'
 
 def make_dir(directory):
     try:
-        os.mkdir(directory, mode=0o777)
+        os.makedirs(directory, mode=511, exist_ok=True)
         print(f'Successfully created directory: {directory}')
     except FileExistsError:
         pass
@@ -75,7 +76,7 @@ def extract_archive(archive_file, destination_folder):
 
 def get_latest_release():
     """return the latest version from github"""
-    url = 'https://api.github.com/repos/ darkalfx/requestrr/releases'
+    url = 'https://api.github.com/repos/darkalfx/requestrr/releases'
 
     try:
         response = requests.get(url)
@@ -110,6 +111,9 @@ def get_latest_release():
 
 
 def main():
+    make_dir(requestrr_path)
+    make_dir(temp_path)
+
     get_latest_release()
 
     # set permissions on file
@@ -118,11 +122,22 @@ def main():
     os.chmod(binary_path, st_mode)  # https://www.tutorialspoint.com/python/os_chmod.htm
 
     #run requestrr
-    proc = subprocess.Popen([binary_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(binary_path)
+
+    if os.path.isfile(binary_path):
+        print('binary is true')
+
+    binary_dir = os.path.dirname(os.path.realpath(binary_path))
+    print(binary_dir)
+
+    proc = subprocess.Popen([binary_path], cwd=binary_dir)
     proc.communicate()
 
+    #delay 60 seconds
+    #time.sleep(60)
+
     #keep the server alive
-    keep_alive.keep_alive()
+    #keep_alive.keep_alive()
 
 
 if __name__ == '__main__':
