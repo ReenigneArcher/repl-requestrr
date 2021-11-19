@@ -1,13 +1,9 @@
 import os
-import re
 import requests
 import subprocess
 import zipfile
 import py7zr
 import time
-
-#local imports
-import keep_alive
 
 requestrr_path = os.path.join(os.getcwd(), 'requestrr')
 temp_path = os.path.join(os.getcwd(), 'temp/requestrr')
@@ -121,23 +117,24 @@ def main():
     st_mode = 33261
     os.chmod(binary_path, st_mode)  # https://www.tutorialspoint.com/python/os_chmod.htm
 
-    #run requestrr
-    print(binary_path)
-
-    if os.path.isfile(binary_path):
-        print('binary is true')
-
     binary_dir = os.path.dirname(os.path.realpath(binary_path))
-    print(binary_dir)
 
-    proc = subprocess.Popen([binary_path], cwd=binary_dir)
-    proc.communicate()
+    while True:
+        proc = subprocess.Popen([binary_path], cwd=binary_dir)
 
-    #delay 60 seconds
-    #time.sleep(60)
+        #keep the server alive
+        while True:
+            #delay 300 seconds
+            time.sleep(300)
 
-    #keep the server alive
-    #keep_alive.keep_alive()
+            # get request the website
+            url = f"https://{os.environ['REPL_SLUG']}.{os.environ['REPL_OWNER']}.repl.co"
+            try:
+                response = requests.get(url)
+            except:
+                break
+        
+        proc.kill()
 
 
 if __name__ == '__main__':
